@@ -69,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: .coverage 
+          path: .coverage
 
   deploy:
     name: Deploy to Production
@@ -86,3 +86,34 @@ jobs:
           echo "Deploying to production..."
           echo "Environment: Production"
           echo "Version: ${{ github.sha }}"
+
+  test-scenarios:
+    name: "Test Scenario: ${{ matrix.scenario.name }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        scenario:
+          - name: 'basic-operations'
+            marker: 'not slow'
+          - name: 'edge-cases'
+            marker: 'edge'
+          - name: 'performance'
+            marker: 'slow'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-benchmark
+
+      - name: Run scenario tests
+        run: pytest -v -m "${{ matrix.scenario.marker }}"
+
